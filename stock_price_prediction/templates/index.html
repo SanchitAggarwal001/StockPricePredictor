@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trend Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin-top: 50px;
+        }
+        .chart-container {
+            margin-top: 30px;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+        .download-link {
+            margin-top: 20px;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Stock Trend Prediction</h1>
+        
+        <!-- Stock Input Form -->
+        <form method="POST">
+            <div class="mb-3">
+                <label for="stock" class="form-label">Enter Stock Ticker(s) (comma-separated):</label>
+                <input type="text" class="form-control" id="stock" name="stock" placeholder="e.g., AAPL, TSLA, AMZN">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+        <!-- Loop Through Each Stock Result -->
+        {% if results %}
+            {% for stock, result in results.items() %}
+                <div class="mt-5">
+                    <h2>{{ stock }}</h2>
+
+                    {% if result.error %}
+                        <p class="error-message">⚠️ {{ result.error }}</p>
+                    {% else %}
+
+                        <!-- Closing Price vs Time (20 & 50 Days EMA) -->
+                        {% if result.plot_path_ema_20_50 %}
+                        <div class="chart-container">
+                            <h3>Closing Price vs Time (20 & 50 Days EMA)</h3>
+                            <img src="{{ url_for('static', filename=result.plot_path_ema_20_50.split('/')[-1]) }}" class="img-fluid" alt="EMA 20 & 50">
+                        </div>
+                        {% endif %}
+
+                        <!-- Closing Price vs Time (100 & 200 Days EMA) -->
+                        {% if result.plot_path_ema_100_200 %}
+                        <div class="chart-container">
+                            <h3>Closing Price vs Time (100 & 200 Days EMA)</h3>
+                            <img src="{{ url_for('static', filename=result.plot_path_ema_100_200.split('/')[-1]) }}" class="img-fluid" alt="EMA 100 & 200">
+                        </div>
+                        {% endif %}
+
+                        <!-- Prediction vs Original Trend -->
+                        {% if result.plot_path_prediction %}
+                        <div class="chart-container">
+                            <h3>Prediction vs Original Trend</h3>
+                            <img src="{{ url_for('static', filename=result.plot_path_prediction.split('/')[-1]) }}" class="img-fluid" alt="Prediction vs Original">
+                        </div>
+                        {% endif %}
+
+                        <!-- Descriptive Data Table -->
+                        {% if result.data_desc %}
+                        <div class="table-responsive">
+                            <h3 class="mt-4">Descriptive Data</h3>
+                            {{ result.data_desc | safe }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Download Dataset -->
+                        {% if result.dataset_link %}
+                        <div class="download-link">
+                            <a href="{{ url_for('download_file', filename=result.dataset_link.split('/')[-1]) }}" class="btn btn-success" download>Download Dataset (CSV)</a>
+                        </div>
+                        {% endif %}
+
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
